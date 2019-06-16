@@ -33,7 +33,13 @@ public class Category {
         this.userID = userID;
     }
 
+    public Integer getId() {
+        return id;
+    }
 
+    public User getUserID() {
+        return userID;
+    }
 
     public String getNameCategory() {
         return nameCategory;

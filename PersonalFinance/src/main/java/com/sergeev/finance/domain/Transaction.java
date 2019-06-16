@@ -13,7 +13,7 @@ public class Transaction {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
-    private User userID;
+    private User user;
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
@@ -26,8 +26,8 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(User userID, Category category, Double amount, Timestamp timestamp) {
-        this.userID = userID;
+    public Transaction(User user, Category category, Double amount, Timestamp timestamp) {
+        this.user = user;
         this.category = category;
         this.amount = amount;
         this.timestamp = timestamp;
@@ -37,12 +37,12 @@ public class Transaction {
         return id;
     }
 
-    public User getUserID() {
-        return userID;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserID(User userID) {
-        this.userID = userID;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Category getCategory() {

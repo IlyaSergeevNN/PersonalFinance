@@ -1,25 +1,23 @@
 package com.sergeev.finance.controller;
 
 import com.sergeev.finance.domain.Category;
-import com.sergeev.finance.domain.Message;
+import com.sergeev.finance.domain.Transaction;
 import com.sergeev.finance.domain.User;
 import com.sergeev.finance.repos.CategoryRepo;
-import com.sergeev.finance.repos.MessageRepo;
 import com.sergeev.finance.repos.TransactionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
 @Controller
 public class MainController {
-    @Autowired
-    private MessageRepo messageRepo;
-
     @Autowired
     private CategoryRepo categoryRepo;
 
@@ -32,40 +30,23 @@ public class MainController {
     }
 
     @GetMapping("/main")
-    public String main(Map<String, Object> model) {
-        Iterable<Message> messages = messageRepo.findAll();
+    public String main(@RequestParam(required = false, defaultValue = "") String filter,
+                       @AuthenticationPrincipal User user, Model model) {
         Iterable<Category> categories = categoryRepo.findAll();
 
-        model.put("messages", messages);
-        model.put("categories", categories);
+        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
 
-        return "main";
-    }
 
-    @PostMapping("/main")
-    public String add(@RequestParam String text, @RequestParam String tag, Map<String, Object> model) {
-        Message message = new Message(text, tag);
+//        if (filter != null && !filter.isEmpty()) {
+//            messages = messageRepo.findByTag(filter);
+//        } else {
+//            messages = messageRepo.findAll();
+//        }
 
-        messageRepo.save(message);
-
-        Iterable<Message> messages = messageRepo.findAll();
-
-        model.put("messages", messages);
-
-        return "main";
-    }
-
-    @PostMapping("filter")
-    public String filter(@RequestParam String filter, Map<String, Object> model) {
-        Iterable<Message> messages;
-
-        if (filter != null && !filter.isEmpty()) {
-            messages = messageRepo.findByTag(filter);
-        } else {
-            messages = messageRepo.findAll();
-        }
-
-        model.put("messages", messages);
+        model.addAttribute("transactions", transactions);
+        model.addAttribute("filter", filter);
+        model.addAttribute("categories", categories);
+        model.addAttribute("user", user);
 
         return "main";
     }
@@ -74,7 +55,7 @@ public class MainController {
     public String addCategory(@RequestParam String nameCategory,
                               @RequestParam String type,
                               @RequestParam int priority,
-                              @AuthenticationPrincipal User user, Map<String, Object> model) {
+                              @AuthenticationPrincipal User user, Model model) {
 
         Category category = new Category(nameCategory, type, priority, user);
 
@@ -82,34 +63,61 @@ public class MainController {
 
         Iterable<Category> categories = categoryRepo.findAll();
 
-        model.put("categories", categories);
+        model.addAttribute("categories", categories);
 
         return "main";
     }
 
     @PostMapping("showCategories")
-    public String showCategories(Map<String, Object> model){
+    public String showCategories(Model model){
         Iterable<Category> categories = categoryRepo.findAllByNameCategory("Покупки");
 
-        model.put("categories", categories);
+        model.addAttribute("categories", categories);
 
         return "main";
     }
 
     @PostMapping("addTransaction")
     public String addTransaction(@RequestParam String nameCategory,
-                              @RequestParam String type,
-                              @RequestParam int priority, Map<String, Object> model) {
+                                 @RequestParam double amount,
+                                 @AuthenticationPrincipal User user, Model model) {
 
-        Category category = new Category(nameCategory, type, priority);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 
-        categoryRepo.save(category);
+        Transaction transaction = new Transaction(user,
+                categoryRepo.findByNameCategory(nameCategory).get(0), amount, timestamp);
 
-        Iterable<Category> categories = categoryRepo.findAll();
+        transactionRepo.save(transaction);
 
-        model.put("categories", categories);
+        Iterable<Transaction> transactions = transactionRepo.findAll();
+
+        model.addAttribute("transactions", transactions);
+        model.addAttribute("user", user);
 
         return "main";
     }
+
+//    @PostMapping("showTransactions")
+//    public String showTransactions(@AuthenticationPrincipal User user, Model model){
+//        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
+//
+//        model.addAttribute("transactions", transactions);
+//
+//        return "main";
+//    }
+
+    //    @PostMapping("/main")
+//    public String add(@RequestParam String text, @RequestParam String tag, Model model) {
+//        Message message = new Message(text, tag);
+//
+//        messageRepo.save(message);
+//
+//        Iterable<Message> messages = messageRepo.findAll();
+//
+//        model.addAttribute("messages", messages);
+//        model.addAttribute("filter", "");
+//
+//        return "main";
+//    }
 
 }

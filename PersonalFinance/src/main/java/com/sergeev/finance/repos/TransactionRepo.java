@@ -8,4 +8,6 @@ import java.util.List;
 public interface TransactionRepo extends CrudRepository<Transaction, Long> {
 
     List<Transaction> findAll();
+
+    List<Transaction> findAllByUserId(Long id);
 }
