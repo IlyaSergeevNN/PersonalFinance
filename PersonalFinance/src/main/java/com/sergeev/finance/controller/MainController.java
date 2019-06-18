@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -25,9 +28,11 @@ public class MainController {
     private TransactionRepo transactionRepo;
 
     @GetMapping("/")
-    public String greeting(Map<String, Object> model) {
+    public String greeting(Model model) {
         return "greeting";
     }
+
+    Iterable<Category> categories;
 
     @GetMapping("/main")
     public String main(@RequestParam(required = false, defaultValue = "") String filter,
@@ -53,17 +58,20 @@ public class MainController {
 
     @PostMapping("addCategory")
     public String addCategory(@RequestParam String nameCategory,
-                              @RequestParam String type,
+                              @RequestParam String categoryType,
                               @RequestParam int priority,
                               @AuthenticationPrincipal User user, Model model) {
 
-        Category category = new Category(nameCategory, type, priority, user);
+        Category category = new Category(nameCategory, categoryType, priority, user);
 
         categoryRepo.save(category);
 
         Iterable<Category> categories = categoryRepo.findAll();
+        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
 
         model.addAttribute("categories", categories);
+        model.addAttribute("user", user);
+        model.addAttribute("transactions", transactions);
 
         return "main";
     }
@@ -89,10 +97,12 @@ public class MainController {
 
         transactionRepo.save(transaction);
 
-        Iterable<Transaction> transactions = transactionRepo.findAll();
+        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
+        Iterable<Category> categories = categoryRepo.findAll();
 
         model.addAttribute("transactions", transactions);
         model.addAttribute("user", user);
+        model.addAttribute("categories", categories);
 
         return "main";
     }
