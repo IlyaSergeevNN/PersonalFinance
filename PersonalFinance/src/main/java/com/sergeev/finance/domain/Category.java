@@ -7,7 +7,7 @@ import javax.persistence.*;
 public class Category {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private Integer id;
+    private Long id;
 
     private String nameCategory;
     private String type;
@@ -33,7 +33,7 @@ public class Category {
         this.userID = userID;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
