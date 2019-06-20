@@ -1,6 +1,7 @@
 package com.sergeev.finance.domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
 @Entity
@@ -19,6 +20,7 @@ public class Transaction {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @NotNull(message = "{transaction.amount.notNull}")
     private Double amount;
 
     private Timestamp timestamp;

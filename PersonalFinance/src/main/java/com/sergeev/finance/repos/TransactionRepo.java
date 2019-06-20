@@ -10,4 +10,9 @@ public interface TransactionRepo extends CrudRepository<Transaction, Long> {
     List<Transaction> findAll();
 
     List<Transaction> findAllByUserId(Long id);
+
+    List<Transaction> findAllById(Long id);
+
+    void deleteById(Long id);
+
 }

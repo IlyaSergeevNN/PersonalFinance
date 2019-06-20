@@ -1,23 +1,20 @@
 package com.sergeev.finance.controller;
 
 import com.sergeev.finance.domain.Category;
+import com.sergeev.finance.domain.CategoryType;
 import com.sergeev.finance.domain.Transaction;
 import com.sergeev.finance.domain.User;
 import com.sergeev.finance.repos.CategoryRepo;
 import com.sergeev.finance.repos.TransactionRepo;
+import com.sergeev.finance.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 public class MainController {
@@ -27,19 +24,24 @@ public class MainController {
     @Autowired
     private TransactionRepo transactionRepo;
 
+    @Autowired
+    TransactionService transactionService;
+
+    Iterable<Category> categories;
+    Iterable<Transaction> transactions;
+    Iterable<CategoryType> categoryTypes;
+
     @GetMapping("/")
     public String greeting(Model model) {
         return "greeting";
     }
 
-    Iterable<Category> categories;
 
     @GetMapping("/main")
     public String main(@RequestParam(required = false, defaultValue = "") String filter,
                        @AuthenticationPrincipal User user, Model model) {
-        Iterable<Category> categories = categoryRepo.findAll();
-
-        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
+        categories = categoryRepo.findAll();
+        transactions = transactionRepo.findAllByUserId(user.getId());
 
 
 //        if (filter != null && !filter.isEmpty()) {
@@ -48,10 +50,13 @@ public class MainController {
 //            messages = messageRepo.findAll();
 //        }
 
+        categoryTypes = Arrays.asList(CategoryType.values());
+
         model.addAttribute("transactions", transactions);
         model.addAttribute("filter", filter);
         model.addAttribute("categories", categories);
         model.addAttribute("user", user);
+        model.addAttribute("categoryTypes", categoryTypes);
 
         return "main";
     }
@@ -66,23 +71,14 @@ public class MainController {
 
         categoryRepo.save(category);
 
-        Iterable<Category> categories = categoryRepo.findAll();
-        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
+        categories = categoryRepo.findAll();
+        transactions = transactionRepo.findAllByUserId(user.getId());
 
         model.addAttribute("categories", categories);
         model.addAttribute("user", user);
         model.addAttribute("transactions", transactions);
 
-        return "main";
-    }
-
-    @PostMapping("showCategories")
-    public String showCategories(Model model){
-        Iterable<Category> categories = categoryRepo.findAllByNameCategory("Покупки");
-
-        model.addAttribute("categories", categories);
-
-        return "main";
+        return "redirect:/main";
     }
 
     @PostMapping("addTransaction")
@@ -97,15 +93,63 @@ public class MainController {
 
         transactionRepo.save(transaction);
 
-        Iterable<Transaction> transactions = transactionRepo.findAllByUserId(user.getId());
-        Iterable<Category> categories = categoryRepo.findAll();
+        transactions = transactionRepo.findAllByUserId(user.getId());
+        categories = categoryRepo.findAll();
 
         model.addAttribute("transactions", transactions);
         model.addAttribute("user", user);
         model.addAttribute("categories", categories);
 
-        return "main";
+        return "redirect:/main";
+
     }
+
+    @PostMapping("deleteTransaction")
+    public String deleteTransaction(@RequestParam String id,
+                                 @AuthenticationPrincipal User user,
+                                 Model model){
+
+        Long idTrans = Long.parseLong(id);
+        transactionRepo.deleteById(idTrans);
+
+        transactions = transactionRepo.findAllByUserId(user.getId());
+        model.addAttribute("transactions", transactions);
+
+        return "redirect:/main";
+    }
+
+    @PostMapping("editTransaction")
+    public String editTransaction(@RequestParam String id,
+                                  @RequestParam String nameCategory,
+                                  @RequestParam Double amount,
+                                  @AuthenticationPrincipal User user, Model model){
+
+        Long idTrans = Long.parseLong(id);
+
+        Transaction transaction = transactionService.findTransactionById(idTrans);
+        transaction.setAmount(amount);
+        transaction.setCategory(categoryRepo.findByNameCategory(nameCategory).get(0));
+
+        transactionRepo.save(transaction);
+
+        transactions = transactionRepo.findAllByUserId(user.getId());
+
+        model.addAttribute("transactions", transactions);
+        System.out.println(idTrans);
+
+        return "redirect:/main";
+    }
+
+//    @PostMapping("showCategories")
+//    public String showCategories(Model model){
+//        categories = categoryRepo.findAllByNameCategory("Покупки");
+//
+//        model.addAttribute("categories", categories);
+//
+//        return "main";
+//    }
+
+
 
 //    @PostMapping("showTransactions")
 //    public String showTransactions(@AuthenticationPrincipal User user, Model model){
