@@ -3,39 +3,64 @@
 <#import "parts/common.ftl" as c>
 <#import "parts/login.ftl" as l>
 <@c.page>
+    <div>Your balance: ${user.getBalance()}</div>
     <div>Add transaction</div>
     <form method="post" action="addTransaction">
-        <select class="custom-select col-md-2" id="inputGroupSelect06" name="nameCategory">
+        <select class="custom-select col-md-2" id="inputGroupSelect06" name="nameCategory" required>
             <option value="" disabled selected>Select category</option>
             <#list categories! as category>
                 <option value="${category.nameCategory}">${category.nameCategory} </option>
             </#list>
         </select>
-        <input type="number" name="amount" step="any" placeholder="Enter amount">
+
+        <input type="number" name="amount" step="any" min="0.0001" required placeholder="Enter amount">
         <input type="hidden" name="_csrf" value="${_csrf.token}" />
         <button type="submit">Add</button>
     </form>
 
     <div>Add Category</div>
     <form method="post" action="addCategory">
-        <select class="custom-select col-md-2" id="inputGroupSelect05" name="categoryType">
+        <select class="custom-select col-md-2" id="inputGroupSelect05" name="categoryType" required>
             <option value="" disabled selected>Select category type</option>
             <#list categoryTypes! as categoryType>
                 <option value="${categoryType}">${categoryType}</option>
             </#list>
 
         </select>
-        <input type="text" name="nameCategory" placeholder="Enter category's name" />
-        <input type="number" name="priority" placeholder="Enter priority">
+        <input type="text" name="nameCategory" placeholder="Enter category's name" required />
+        <input type="number" name="priority" required min="0" max="3" placeholder="Enter priority" >
         <input type="hidden" name="_csrf" value="${_csrf.token}" />
         <button type="submit">Add</button>
     </form>
 
+    <div>Filters</div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <form method="get" action="/main" class="form-inline">
+                <select class="custom-select col-md-2" id="inputGroupSelect05" name="filterType">
+                    <option value="" disabled selected>Type</option>
+                    <#list categoryTypes! as categoryType>
+                        <option value="${categoryType}">${categoryType}</option>
+                    </#list>
+
+                </select>
+                <select class="custom-select col-md-2" id="inputGroupSelect06" name="filterCategory">
+                    <option value="" disabled selected>Category</option>
+                    <#list categories! as category>
+                        <option value="${category.nameCategory}">${category.nameCategory} </option>
+                    </#list>
+                </select>
+                <input type="hidden" name="_csrf" value="${_csrf.token}" />
+                <input type="number" name="filterMinAmount" step="any" placeholder="Min amount">
+                <input type="number" name="filterMaxAmount" step="any" placeholder="Max amount">
+                <input type="datetime-local" name="minDate">
+                <input type="datetime-local" name="maxDate">
+                <button type="submit" class="btn btn-primary ml-2">Search</button>
+            </form>
+        </div>
+    </div>
+
     <div>All transactions</div>
-    <form method="post" action="showTransactions">
-        <input type="hidden" name="_csrf" value="${_csrf.token}" />
-        <button type="submit">Show</button>
-    </form>
     <table class="table table-striped">
         <thead class="thead-dark">
         <tr>
@@ -71,12 +96,13 @@
                         <form action="editTransaction" method="post" >
                             <div class="form-group">
                                 <form >
-                                    <select class="custom-select col-md-2" id="inputGroupSelect06" name="nameCategory">
+                                    <select class="custom-select col-md-2" id="inputGroupSelect06" name="nameCategory" required>
+                                        <option value="" disabled selected>${transaction.category.nameCategory}</option>
                                         <#list categories! as category>
                                             <option value="${category.nameCategory}">${category.nameCategory} </option>
                                         </#list>
                                     </select>
-                                    <input type="number" name="amount" step="any" placeholder="${transaction.amount}">
+                                    <input type="number" name="amount" step="any" value="${transaction.amount}" required placeholder="${transaction.amount}">
                                     <input type="hidden" name="_csrf" value="${_csrf.token}" />
                                     <input type="hidden" name="id" value="${transaction.id}" />
                                     <div class="modal-footer">
@@ -122,13 +148,5 @@
         You have no transactions, add first!
     </#list>
     </table>
-    
-
-    <div>Список категорий</div>
-    <form method="post" action="showCategories">
-        <input type="hidden" name="_csrf" value="${_csrf.token}" />
-        <button type="submit">Найти</button>
-    </form>
-
 
 </@c.page>

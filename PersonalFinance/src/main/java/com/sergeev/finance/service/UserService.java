@@ -1,7 +1,9 @@
 package com.sergeev.finance.service;
 
 import com.sergeev.finance.domain.Role;
+import com.sergeev.finance.domain.Transaction;
 import com.sergeev.finance.domain.User;
+import com.sergeev.finance.repos.TransactionRepo;
 import com.sergeev.finance.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +22,10 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private MailSender mailSender;
+
+    @Autowired
+    private TransactionRepo transactionRepo;
+    Iterable<Transaction> transactions;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -117,4 +123,31 @@ public class UserService implements UserDetailsService {
             sendMessage(user);
         }
     }
+
+    public void updateBalance(User user) {
+        transactions = transactionRepo.findAllByUserId(user.getId());
+        Double currentBalance = 0.0;
+
+        for (Transaction transaction: transactions) {
+            if (transaction.getCategory().getType().equals("COSTS")) {
+                currentBalance = currentBalance - transaction.getAmount();
+            } else {
+                currentBalance = currentBalance + transaction.getAmount();
+            }
+        }
+        user.setBalance(currentBalance);
+
+        userRepo.save(user);
+    }
+
+    public static String getCallerClassAndMethodName() {
+        StackTraceElement[] tracer;
+        tracer = new Throwable().getStackTrace();
+        if (tracer.length > 2) {
+            return tracer[2].getMethodName();
+        } else {
+            return null;
+        }
+    }
+
 }
