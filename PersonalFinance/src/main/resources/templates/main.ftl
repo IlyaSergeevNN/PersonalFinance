@@ -3,7 +3,7 @@
 <#import "parts/common.ftl" as c>
 <#import "parts/login.ftl" as l>
 <@c.page>
-    <div>Your balance: ${user.getBalance()}</div>
+    <div xmlns="http://www.w3.org/1999/html">Your balance: ${user.getBalance()}</div>
     <div>Add transaction</div>
     <form method="post" action="addTransaction">
         <select class="custom-select col-md-2" id="inputGroupSelect06" name="nameCategory" required>
@@ -35,27 +35,51 @@
 
     <div>Filters</div>
     <div class="form-row">
-        <div class="form-group col-md-6">
-            <form method="get" action="/main" class="form-inline">
-                <select class="custom-select col-md-2" id="inputGroupSelect05" name="filterType">
-                    <option value="" disabled selected>Type</option>
+        <div class="form-group">
+            <form method="get" action="/main" class="form-inline" id="filtersForm">
+                <select class="form-control" id="filterType" name="filterType">
+                    <#if filterType = ''>
+                        <option value="" selected>Select category type</option>
+                    <#else>
+                        <option value="">Select category type</option>
+                    </#if>
                     <#list categoryTypes! as categoryType>
-                        <option value="${categoryType}">${categoryType}</option>
+                        <#if filterType = categoryType>
+                            <option selected value="${categoryType}">${categoryType}</option>
+                            <#else>
+                                <option value="${categoryType}">${categoryType}</option>
+                        </#if>
                     </#list>
-
                 </select>
-                <select class="custom-select col-md-2" id="inputGroupSelect06" name="filterCategory">
-                    <option value="" disabled selected>Category</option>
+                <select class="form-control" id="filterCategory" name="filterCategory">
+                    <#if filterCategory = ''>
+                        <option data-type="" value="" selected>Select category</option>
+                    <#else>
+                        <option data-type="" value="">Select category</option>
+                    </#if>
                     <#list categories! as category>
-                        <option value="${category.nameCategory}">${category.nameCategory} </option>
+                        <#if filterCategory = category.nameCategory>
+                            <option data-type="${category.type}" selected value="${category.nameCategory}">${category.nameCategory}</option>
+                            <#else>
+                                <option data-type="${category.type}" value="${category.nameCategory}">${category.nameCategory}</option>
+                        </#if>
                     </#list>
                 </select>
-                <input type="hidden" name="_csrf" value="${_csrf.token}" />
-                <input type="number" name="filterMinAmount" step="any" placeholder="Min amount">
-                <input type="number" name="filterMaxAmount" step="any" placeholder="Max amount">
-                <input type="datetime-local" name="minDate">
-                <input type="datetime-local" name="maxDate">
+                <input type="number" name="filterMinAmount" step="any"
+                        <#if filterMinAmount??> value="${filterMinAmount}"
+                        <#else> placeholder="Min amount" value=""</#if> />
+                <input type="number" name="filterMaxAmount" step="any"
+                        <#if filterMaxAmount??> value=${filterMaxAmount}
+                        <#else> placeholder="Max amount" value=""</#if> />
+                <input type="datetime-local" name="minDate"
+                        <#if minDate??> value="${minDate}"
+                        <#else> value=""</#if> />
+                <input type="datetime-local" name="maxDate"
+                        <#if maxDate??> value="${maxDate}"
+                        <#else> value=""</#if> />
                 <button type="submit" class="btn btn-primary ml-2">Search</button>
+                <button type="button" class="btn btn-danger ml-2" id="resetBtn" >Clear filters</button>
+                <input type="hidden" name="_csrf" value="${_csrf.token}" />
             </form>
         </div>
     </div>
@@ -110,10 +134,8 @@
                                         <input type="submit" value="Save" class="btn btn-danger" />
                                     </div>
                                 </form>
-
                         </form>
                     </div>
-
                 </div>
             </div>
         </div>

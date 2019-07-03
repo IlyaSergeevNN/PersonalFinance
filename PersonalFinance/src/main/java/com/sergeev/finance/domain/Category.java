@@ -15,7 +15,7 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
-    private User userID;
+    private User user;
 
     public Category() {
     }
@@ -30,15 +30,15 @@ public class Category {
         this.nameCategory = nameCategory;
         this.type = type;
         this.priority = priority;
-        this.userID = userID;
+        this.user = userID;
     }
 
     public Long getId() {
         return id;
     }
 
-    public User getUserID() {
-        return userID;
+    public User getUser() {
+        return user;
     }
 
     public String getNameCategory() {
